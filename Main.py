@@ -3,14 +3,29 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+import statistics as sta
+
 st.set_page_config(
 
     page_title="Multyfi Backtester",
     page_icon="🗓️",
     layout="wide",
 )
+image_path = 'https://play-lh.googleusercontent.com/uF2DL0gqYYsAs_fKyjPDZ_crj82KU9_F7CPuzb4wNWEAEII2Tu83j-6iavOcBt-KQrw=w240-h480-rw'  # Replace with the path to your image file
+caption = 'Backtest Engine'
+width = 150  # Specify the desired width in pixels
+
+# Create a container with custom layout
+col1, col2 = st.columns([1, 6])  # Adjust the ratio as needed
+
+# Display the image with the specified width in the first column
+with col1:
+    st.image(image_path,width=width)
+
+# Display the caption with a larger font in the second column
+with col2:
+    st.header(caption)
 x=0
-st.title("Backtest engine")
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     but_summary,but_stats,but_charts,but_streaks,but_datatable = st.columns(5)
@@ -116,7 +131,7 @@ if uploaded_file is not None:
     styled_data = subset_data.style.applymap(color_pnl, subset=['Pnl'])
 
     # Calculate the total PNL for each month and year
-    monthly_pnl = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack().fillna(0)
+    monthly_pnl = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack()
 
     # ============================================================QUATERLY BREAKUP===============================================================================================================================================
     data['quarter'] = data['date'].dt.quarter
@@ -170,22 +185,6 @@ if uploaded_file is not None:
 
     # Calculate Average Trades Per Day
     avg_trades_per_day = data.groupby(data['date'].dt.date)['Key'].count().mean()
-    # Create a dictionary with the statistics
-    statistics = {
-        'Overall Profit': overall_profit,
-        'Average Day Profit': average_day_profit,
-        'Avg Monthly Profit': average_monthly_profit,
-        "Avg Yearly Profit": avg_yearly_profit,
-        "Median Monthly Profit": median_monthly_profit,
-        'Max Profit': max_profit,
-        'Max Loss': max_loss,
-        'Win% (Days)': win_percentage,
-        'Loss% (Days)': loss_percentage,
-        'Avg Profit On Win Days': average_profit_win_days,
-        'Avg Loss On Loss Days': average_loss_loss_days,
-        "Avg Weekly Profit": avg_weekly_profit,
-        "Avg Trades Per Day": avg_trades_per_day
-    }
     #=========================================================================DRAWDOWN=======================================================================================
 
 
@@ -195,35 +194,54 @@ if uploaded_file is not None:
     data['drawdown'] = data['cumulative_pnl'] - data['previous_peak']
 # ===========================================================================RATIOS======================================================================================================
     data["ExitTime"] = pd.to_datetime(data["ExitTime"])
-    data["Year"] = data["ExitTime"].dt.year
     data["Month"] = data["ExitTime"].dt.month
-
-    # Step 4: Define functions for performance ratios
-    average_annual_return = data['Pnl'].mean() * 252  # Assuming 252 trading days in a year
-    calmar_ratio = (average_annual_return / data['drawdown'].min())*-1
-
-    def calculate_sortino_ratio(pnl):
-        downside_returns = pnl[pnl < 0]
-        downside_std = downside_returns.std()
-        sortino_ratio = pnl.mean() / downside_std
-        return sortino_ratio
-
-    def calculate_drr_ratio(pnl):
-        drr_ratio = pnl[pnl > 0].sum() / abs(pnl[pnl < 0].sum())
-        return drr_ratio
-
-    # Step 5: Calculate performance ratios
-    # yearly_calmar_ratio = calculate_calmar_ratio(data.groupby("Year")["Pnl"].sum())
-    # monthly_calmar_ratio = calculate_calmar_ratio(data.groupby(["Year", "Month"])["Pnl"].sum())
-    # monthly_sortino_ratio = calculate_sortino_ratio(data.groupby(["Year", "Month"])["Pnl"].sum())
-    # drr_ratio = calculate_drr_ratio(data["Pnl"])
-
-
-    # Extract the year from the date
-
+    data['Date']=data['date'].dt.date
+    max_drawdown=abs(data['drawdown'].min())
+    max_entries_day = data["Date"].value_counts().max()
+    capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
+    data['NAv']=data["cumulative_pnl"].add(capital)
+    data['NAv'] = pd.to_numeric(data['NAv'], errors='coerce')
+    ddpercentage=(max_drawdown/capital)
+    number_of_years=data['year'].nunique()
+    cagr=(data['NAv'].iloc[-1]/capital)**(1/number_of_years)-1
+    calmar=(cagr*capital)/max_drawdown
+    average_points=overall_profit/(data['cumulative_pnl'].count())/data['Quantity'].iloc[5]
+    roi_percentage=(overall_profit/capital)*100
+    yearly_roi_percentage=(roi_percentage/number_of_years)*100
+    data['std']=data['Pnl']/capital
+    std=data['std'].values.tolist()
+    stdev=sta.pstdev(std)
+    sharpe_ratio=(cagr-.02)/stdev
+    Ratios={
+        'Maximum Drawdown':round(max_drawdown,2),
+        'Drawdown Percentage':str(round(ddpercentage*100,2))+' %',
+        'Cagr':round(cagr*100,2),
+        'Calmar':round(calmar,2),
+        'Roi Percentage':str(round(roi_percentage,2))+' %',
+        'Yearly Roi Percentage':str(round(yearly_roi_percentage,2))+' %',
+        'Sharpe Ratio':round(sharpe_ratio,2)
+    }
+    statistics = {
+        'Overall Profit': overall_profit,
+        'Average Day Profit': average_day_profit,
+        'Avg Monthly Profit': average_monthly_profit,
+        "Avg Yearly Profit": avg_yearly_profit,
+        "Median Monthly Profit": median_monthly_profit,
+        'Average points':round(average_points,2),
+        "Avg Trades Per Day": avg_trades_per_day
+    }
+    Stats2={
+        'Max Profit': max_profit,
+        'Max Loss': max_loss,
+        'Win% (Days)': win_percentage,
+        'Loss% (Days)': loss_percentage,
+        'Avg Profit On Win Days': average_profit_win_days,
+        'Avg Loss On Loss Days': average_loss_loss_days,
+        "Avg Weekly Profit": avg_weekly_profit,
+    }
+# =================================================================================daywise_breakup==========================================================================
     # Extract the day of the week from the date
     data['day_of_week'] = data['date'].dt.day_name()
-
     # Group the data by year and day of the week and calculate the sum of profit for each combination
     daywise_breakup = data.groupby(['year', 'day_of_week'])['Pnl'].sum().unstack()
     
@@ -257,34 +275,32 @@ if uploaded_file is not None:
                 st.write("Top 5 Longest Losing Streaks (Timewise):")
                 st.dataframe(loss_streaks.nlargest(5, 'Days').style.applymap(lambda x: 'color: red'))
         if x==6:
-            st.write(styled_data)
+            st.table(styled_data)
         if x==4:
+            s1,s2,s3=st.columns(3)
+            with s1:
+                st.table(pd.DataFrame.from_dict(statistics, orient='index', columns=['Value']))
+            with s2:
+                st.table(pd.DataFrame.from_dict(Stats2, orient='index', columns=['Value']))
+            with s3:
+                st.table(pd.DataFrame.from_dict(Ratios, orient='index', columns=['Value']))
+            st.divider()
             st.header('Monthly Breakup')
             # Display the monthly PNL breakup
-            st.dataframe(monthly_pnl)
-            st.divider()
-            # Display the statistics in a table
-            st.table(pd.DataFrame.from_dict(statistics, orient='index', columns=['Value']))
+            st.table(monthly_pnl)
             st.divider()
             st.header('Day- Wise Breakup')
             # Display the day=wise breakup as a table
             st.table(daywise_breakup)
             st.divider()
-            # Display the bar graph of drawdown
-            # st.subheader("Yearly Calmar Ratio:", round(calmar_ratio, 2))
-            # st.write("Yearly Calmar Ratio:", round(yearly_calmar_ratio, 2))
-            # st.write("Monthly Calmar Ratio:", round(monthly_calmar_ratio, 2))
-            # st.write("Monthly Sortino Ratio:", round(monthly_sortino_ratio, 2))
-            # st.write("DRR Ratio:", round(drr_ratio, 2))
-            # Display the table of filtered drawdowns
-            st.subheader(" Max Drawdown :"+str(data['drawdown'].min()))
-
         if x==5:
-            st.header("Quarterly PNL Breakup (Absolute Values)")
-            st.dataframe(quarterly_pnl)
-            st.divider()
-            st.header("Quarterly PNL Breakup (Percentages)")
-            st.dataframe(quarterly_pnl_percent)
+            sum1,sum2=st.columns(2)
+            with sum1:
+                st.subheader("Quarterly PNL Breakup (Absolute Values)")
+                st.table(quarterly_pnl)
+            with sum2:
+                st.subheader("Quarterly PNL Breakup (Percentages)")
+                st.table(quarterly_pnl_percent)
             st.divider()
             st.header('Cumulative Pnl Chart')
             st.plotly_chart(daily_fig)
