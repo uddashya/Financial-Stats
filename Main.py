@@ -23,16 +23,6 @@ image_data_uri = f'data:image/png;base64,{image_base64}'
 caption = 'Backtest Engine'
 width = 500  # Specify the desired width in pixels
 st.image(image_data_uri,width=width)
-# Create a container with custom layout
-# col1, col2 = st.columns([1, 6])  # Adjust the ratio as needed
-
-# # Display the image with the specified width in the first column
-# with col1:
-#     st.image(image_path,width=width)
-
-# # Display the caption with a larger font in the second column
-# with col2:
-#     st.header(caption)
 x=0
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
@@ -141,20 +131,6 @@ if uploaded_file is not None:
 
     # Calculate the total PNL for each month and year
     monthly_pnl_unstyled = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack()
-    # def color_negative_red(value):
-    #     if isinstance(value, float) and value < 0:
-    #         return custom_cmap_n
-    #     else:
-    #             return custom_cmap
-    # custom_cmap = mcolors.LinearSegmentedColormap.from_list('custom', ['#c2e6c2', '#77dd77'])
-    # custom_colors = ['#ff6961', '#ffb3ab']  # Darker red to lighter shade of red
-    # custom_cmap_n = mcolors.LinearSegmentedColormap.from_list('custom', custom_colors)
-
-
-    # # Apply the custom color map to the values
-    # monthly_pnl = monthly_pnl_unstyled.style.background_gradient(cmap=color_negative_red)
-    # Define custom color map from light green to #77dd77
-    # Apply the background color based on the values
     monthly_pnl = monthly_pnl_unstyled.style.applymap(color_negative_red)
 
 
@@ -351,3 +327,4 @@ if uploaded_file is not None:
         if st.button('Data Table'):
             x=6
     display(x)
+    print(data['date'])
