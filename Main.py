@@ -5,7 +5,7 @@ import plotly.express as px
 import numpy as np
 import statistics as sta
 import matplotlib.colors as mcolors
-
+import base64
 base="dark"
 
 st.set_page_config(
@@ -15,9 +15,14 @@ st.set_page_config(
     layout="wide",
 )
 image_path = '/Users/uddashyakumar/Desktop/Screenshot 2023-06-16 at 14.27.04.png'  # Replace with the path to your image file
+with open(image_path, 'rb') as image_file:
+    image_data = image_file.read()
+    image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+image_data_uri = f'data:image/png;base64,{image_base64}'
 caption = 'Backtest Engine'
 width = 500  # Specify the desired width in pixels
-st.image(image_path,width=width)
+st.image(image_data_uri,width=width)
 # Create a container with custom layout
 # col1, col2 = st.columns([1, 6])  # Adjust the ratio as needed
 
