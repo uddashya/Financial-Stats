@@ -39,10 +39,10 @@ if uploaded_file is not None:
             return ''
 
     # Convert the date column to datetime format
-    data['date'] = pd.to_datetime(data['date'])
+    data['ExitTime'] = pd.to_datetime(data['ExitTime'])
     data['pnl_cumulative'] = data['Pnl'].cumsum()
     # Create the area plot for cumulative PNL
-    area_fig = go.Figure(data=go.Scatter(x=data['date'], y=data['pnl_cumulative'], fill='tozeroy'))
+    area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['pnl_cumulative'], fill='tozeroy'))
 
     # Set the layout for the area plot
     area_fig.update_layout(
@@ -52,7 +52,7 @@ if uploaded_file is not None:
     )
 
     # Extract month and year from the date
-    data['month_year'] = data['date'].dt.to_period('M')
+    data['month_year'] = data['ExitTime'].dt.to_period('M')
 
     # Calculate the total PNL for each month
     monthly_pnl = data.groupby('month_year')['Pnl'].sum().reset_index().astype(str)
@@ -66,11 +66,11 @@ if uploaded_file is not None:
     )
 
     # Calculate the cumulative PNL on a daily basis
-    data['pnl_cumsum_daily'] = data.groupby(data['date'].dt.date)['Pnl'].cumsum()
+    data['pnl_cumsum_daily'] = data.groupby(data['ExitTime'].dt.date)['Pnl'].cumsum()
     daily_fig = px.bar(data, x='date', y='pnl_cumsum_daily', title='Daily PNL Cumulative')
 
     # Calculate the cumulative PNL on a weekly basis
-    data['week'] = data['date'].dt.to_period('W').astype(str)
+    data['week'] = data['ExitTime'].dt.to_period('W').astype(str)
     data['pnl_cumsum_weekly'] = data.groupby('week')['Pnl'].cumsum()
     weekly_fig = px.bar(data, x='week', y='pnl_cumsum_weekly', title='Weekly PNL Cumulative')
 
@@ -116,8 +116,8 @@ if uploaded_file is not None:
     # Convert the date column to datetime format
     daily_pnl = data.groupby('date')['Pnl'].sum().reset_index()
     # Extract month and year from the date
-    data['year'] = data['date'].dt.year
-    data['month_name'] = data['date'].dt.month_name()
+    data['year'] = data['ExitTime'].dt.year
+    data['month_name'] = data['ExitTime'].dt.month_name()
 
     # =========================================================DATA TABLE=====================================================================================================================================================
         # Apply color formatting to PNL values
@@ -135,7 +135,7 @@ if uploaded_file is not None:
 
 
     # ============================================================QUATERLY BREAKUP===============================================================================================================================================
-    data['quarter'] = data['date'].dt.quarter
+    data['quarter'] = data['ExitTime'].dt.quarter
 
     # Calculate the total PNL for each quarter and year
     quarterly_pnl = data.groupby(['year', 'quarter'])['Pnl'].sum().unstack().fillna(0)
@@ -171,7 +171,7 @@ if uploaded_file is not None:
     loss_percentage = (data[data['Pnl'] < 0].shape[0] / data.shape[0]) * 100
 
     # Calculate the average monthly profit
-    data['month'] = pd.to_datetime(data['date']).dt.to_period('M')
+    data['month'] = pd.to_datetime(data['ExitTime']).dt.to_period('M')
     average_monthly_profit = data.groupby('month')['Pnl'].mean().mean()
 
     # Calculate the average profit on win days
@@ -179,16 +179,14 @@ if uploaded_file is not None:
 
     # Calculate the average loss on loss days
     average_loss_loss_days = data[data['Pnl'] < 0]['Pnl'].mean()
-    avg_yearly_profit = data.groupby(data['date'].dt.year)['Pnl'].sum().mean()
-    median_monthly_profit = data.groupby(data['date'].dt.to_period('M'))['Pnl'].sum().median()
+    avg_yearly_profit = data.groupby(data['ExitTime'].dt.year)['Pnl'].sum().mean()
+    median_monthly_profit = data.groupby(data['ExitTime'].dt.to_period('M'))['Pnl'].sum().median()
     # Calculate Average Weekly Profit
-    avg_weekly_profit = data.groupby(data['date'].dt.to_period('W'))['Pnl'].sum().mean()
+    avg_weekly_profit = data.groupby(data['ExitTime'].dt.to_period('W'))['Pnl'].sum().mean()
 
     # Calculate Average Trades Per Day
-    avg_trades_per_day = data.groupby(data['date'].dt.date)['Key'].count().mean()
+    avg_trades_per_day = data.groupby(data['ExitTime'].dt.date)['Key'].count().mean()
     #=========================================================================DRAWDOWN=======================================================================================
-
-
     # Calculate drawdown
     data['cumulative_pnl'] = data['Pnl'].cumsum()
     data['previous_peak'] = data['cumulative_pnl'].cummax()
@@ -196,7 +194,7 @@ if uploaded_file is not None:
 # ===========================================================================RATIOS======================================================================================================
     data["ExitTime"] = pd.to_datetime(data["ExitTime"])
     data["Month"] = data["ExitTime"].dt.month
-    data['Date']=data['date'].dt.date
+    data['Date']=data['ExitTime'].dt.date
     max_drawdown=abs(data['drawdown'].min())
     max_entries_day = data["Date"].value_counts().max()
     capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
@@ -242,11 +240,9 @@ if uploaded_file is not None:
     }
 # =================================================================================daywise_breakup==========================================================================
     # Extract the day of the week from the date
-    data['day_of_week'] = data['date'].dt.day_name()
+    data['day_of_week'] = data['ExitTime'].dt.day_name()
     # Group the data by year and day of the week and calculate the sum of profit for each combination
     daywise_breakup = data.groupby(['year', 'day_of_week'])['Pnl'].sum().unstack()
-    
-
 # ====================================================running the code===============================================================================================
     def display(x):
         if x==1:
@@ -308,9 +304,6 @@ if uploaded_file is not None:
             st.divider() 
             st.header('Quarterly Bar Chart')
             st.plotly_chart(bar_fig_quarterly)
-
-
-
     with but_charts:
         if st.button('Charts'):
             x=1
@@ -327,4 +320,3 @@ if uploaded_file is not None:
         if st.button('Data Table'):
             x=6
     display(x)
-    print(data['date'])
