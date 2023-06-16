@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 import statistics as sta
+import matplotlib.colors as mcolors
+
+base="dark"
 
 st.set_page_config(
 
@@ -11,20 +14,20 @@ st.set_page_config(
     page_icon="🗓️",
     layout="wide",
 )
-image_path = 'https://play-lh.googleusercontent.com/uF2DL0gqYYsAs_fKyjPDZ_crj82KU9_F7CPuzb4wNWEAEII2Tu83j-6iavOcBt-KQrw=w240-h480-rw'  # Replace with the path to your image file
+image_path = '/Users/uddashyakumar/Desktop/Screenshot 2023-06-16 at 14.27.04.png'  # Replace with the path to your image file
 caption = 'Backtest Engine'
-width = 150  # Specify the desired width in pixels
-
+width = 500  # Specify the desired width in pixels
+st.image(image_path,width=width)
 # Create a container with custom layout
-col1, col2 = st.columns([1, 6])  # Adjust the ratio as needed
+# col1, col2 = st.columns([1, 6])  # Adjust the ratio as needed
 
-# Display the image with the specified width in the first column
-with col1:
-    st.image(image_path,width=width)
+# # Display the image with the specified width in the first column
+# with col1:
+#     st.image(image_path,width=width)
 
-# Display the caption with a larger font in the second column
-with col2:
-    st.header(caption)
+# # Display the caption with a larger font in the second column
+# with col2:
+#     st.header(caption)
 x=0
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
@@ -32,6 +35,13 @@ if uploaded_file is not None:
 # ==========================================================================CHARTS=======================================================================================
     # Read the CSV file
     data = pd.read_csv(uploaded_file)
+    def color_negative_red(value):
+        if value < 0:
+            return 'background-color: #ff6961'
+        elif value > 0:
+            return 'background-color: #77dd77'
+        else:
+            return ''
 
     # Convert the date column to datetime format
     data['date'] = pd.to_datetime(data['date'])
@@ -116,22 +126,32 @@ if uploaded_file is not None:
 
     # =========================================================DATA TABLE=====================================================================================================================================================
         # Apply color formatting to PNL values
-    def color_pnl(value):
-        if value < 0:
-            color = 'red'
-        else:
-            color = 'green'
-        return f'color: {color}'
 
     # Apply color formatting to the entire DataFrame
     selected_headers = ['Key', 'ExitTime', 'EntryPrice', 'ExitPrice', 'Pnl', 'PositionStatus', 'Quantity', 'Symbol']
 
     # Subset the data with selected headers
     subset_data = data[selected_headers]
-    styled_data = subset_data.style.applymap(color_pnl, subset=['Pnl'])
+    styled_data_table = subset_data.style.applymap(color_negative_red, subset=['Pnl'])
 
     # Calculate the total PNL for each month and year
-    monthly_pnl = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack()
+    monthly_pnl_unstyled = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack()
+    # def color_negative_red(value):
+    #     if isinstance(value, float) and value < 0:
+    #         return custom_cmap_n
+    #     else:
+    #             return custom_cmap
+    # custom_cmap = mcolors.LinearSegmentedColormap.from_list('custom', ['#c2e6c2', '#77dd77'])
+    # custom_colors = ['#ff6961', '#ffb3ab']  # Darker red to lighter shade of red
+    # custom_cmap_n = mcolors.LinearSegmentedColormap.from_list('custom', custom_colors)
+
+
+    # # Apply the custom color map to the values
+    # monthly_pnl = monthly_pnl_unstyled.style.background_gradient(cmap=color_negative_red)
+    # Define custom color map from light green to #77dd77
+    # Apply the background color based on the values
+    monthly_pnl = monthly_pnl_unstyled.style.applymap(color_negative_red)
+
 
     # ============================================================QUATERLY BREAKUP===============================================================================================================================================
     data['quarter'] = data['date'].dt.quarter
@@ -207,7 +227,7 @@ if uploaded_file is not None:
     calmar=(cagr*capital)/max_drawdown
     average_points=overall_profit/(data['cumulative_pnl'].count())/data['Quantity'].iloc[5]
     roi_percentage=(overall_profit/capital)*100
-    yearly_roi_percentage=(roi_percentage/number_of_years)*100
+    yearly_roi_percentage=(roi_percentage/number_of_years)
     data['std']=data['Pnl']/capital
     std=data['std'].values.tolist()
     stdev=sta.pstdev(std)
@@ -264,18 +284,18 @@ if uploaded_file is not None:
 
             with col1:
                 st.write("Top 5 Maximum Winning Streaks (Moneywise):")
-                st.dataframe(win_streaks.style.applymap(lambda x: 'color: green')) 
+                st.dataframe(win_streaks.style.applymap(lambda x: 'color: #77dd77')) 
                 st.write("Top 5 Maximum Losing Streaks (Moneywise):")
-                st.dataframe(loss_streaks.nlargest(5, 'Loss').style.applymap(lambda x: 'color: red'))      
+                st.dataframe(loss_streaks.nlargest(5, 'Loss').style.applymap(lambda x: 'color: #ff6961'))      
 
             with col2:
                 st.write("Top 5 Longest Winning Streaks (Timewise):")
-                st.dataframe(win_streaks.nlargest(5, 'Days').style.applymap(lambda x: 'color: green')) 
+                st.dataframe(win_streaks.nlargest(5, 'Days').style.applymap(lambda x: 'color: #77dd77')) 
 
                 st.write("Top 5 Longest Losing Streaks (Timewise):")
-                st.dataframe(loss_streaks.nlargest(5, 'Days').style.applymap(lambda x: 'color: red'))
+                st.dataframe(loss_streaks.nlargest(5, 'Days').style.applymap(lambda x: 'color: #ff6961'))
         if x==6:
-            st.table(styled_data)
+            st.table(styled_data_table)
         if x==4:
             s1,s2,s3=st.columns(3)
             with s1:
@@ -291,16 +311,16 @@ if uploaded_file is not None:
             st.divider()
             st.header('Day- Wise Breakup')
             # Display the day=wise breakup as a table
-            st.table(daywise_breakup)
+            st.table(daywise_breakup.style.applymap(color_negative_red))
             st.divider()
         if x==5:
             sum1,sum2=st.columns(2)
             with sum1:
                 st.subheader("Quarterly PNL Breakup (Absolute Values)")
-                st.table(quarterly_pnl)
+                st.table(quarterly_pnl.style.applymap(color_negative_red))
             with sum2:
                 st.subheader("Quarterly PNL Breakup (Percentages)")
-                st.table(quarterly_pnl_percent)
+                st.table(quarterly_pnl_percent.style.applymap(color_negative_red))
             st.divider()
             st.header('Cumulative Pnl Chart')
             st.plotly_chart(daily_fig)
