@@ -7,6 +7,8 @@ import statistics as sta
 import matplotlib.colors as mcolors
 import base64
 import matplotlib.pyplot as plt
+import numpy as np
+
 st.set_page_config(
 
     page_title="Multyfi Backtester",
@@ -56,6 +58,7 @@ table_style = """
 """
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
+    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     but_summary,but_stats,but_charts,but_streaks,but_drawdown,but_datatable = st.columns(6)
     cost_col,capital_col=st.columns(2)
     data = pd.read_csv(uploaded_file)
@@ -70,7 +73,7 @@ if uploaded_file is not None:
             return 'background-color: #77dd77'
         else:
             return ''
-    data = data.sort_values('date')
+    data = data.sort_values('ExitTime')
     #setting the cost
     with cost_col:
         cost = st.number_input('Insert the Cost')
@@ -86,7 +89,6 @@ if uploaded_file is not None:
     data['year'] = data['ExitTime'].dt.year
     data['month_name'] = data['ExitTime'].dt.month_name()
     data = data.sort_values('ExitTime')
-    month_order = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December']
     # Extract month and year from the date
     data['month_year'] = data['ExitTime'].dt.to_period('M')
     data['day_of_week'] = data['ExitTime'].dt.day_name()
@@ -94,12 +96,37 @@ if uploaded_file is not None:
     with options1:
         options_year = st.multiselect('Years', data['year'].unique(), key='years_multiselect')
     with options2:
-        options_days = st.multiselect('Days', data['day_of_week'].unique(), key='days_multiselect')
+        options_days = st.multiselect('Days', day_order, key='days_multiselect')
     if options_year!=[]:
         data = data[data['ExitTime'].dt.year.isin(options_year)].reset_index(drop=True)
     if options_days!=[]:
         data = data[data['ExitTime'].dt.day_name().isin(options_days)].reset_index(drop=True)
+    # =============================================================================STREAKS=========================================================================================
+    # Calculate the streaks
+    data['is_win'] = data['Pnl'] > 0
+    data['is_loss'] = data['Pnl'] < 0
+
+    # Calculate the streak ID for winning and losing streaks
+    data['win_streak_id'] = (data['is_win'] != data['is_win'].shift()).cumsum()
+    data['loss_streak_id'] = (data['is_loss'] != data['is_loss'].shift()).cumsum()
+
+    win_streaks = data[data['is_win']].groupby('win_streak_id').agg(
+        Days=('ExitTime', 'count'),
+        Start=('ExitTime', 'first'),
+        End=('ExitTime', 'last'),
+        Profit=('Pnl', 'sum')
+    ).nlargest(5, 'Profit').reset_index(drop=True)
+    win_streaks = win_streaks[['Days', 'Start', 'End', 'Profit']]
     
+    # Calculate the streak details for losing streaks
+    loss_streaks = data[data['is_loss']].groupby('loss_streak_id').agg(
+        Days=('ExitTime', 'count'),
+        Start=('ExitTime', 'first'),
+        End=('ExitTime', 'last'),
+        Loss=('Pnl', 'sum')
+    ).nsmallest(5, 'Loss').reset_index(drop=True)
+    loss_streaks = loss_streaks[['Days', 'Start', 'End', 'Loss']]
+
 #=========================================================================DRAWDOWN=======================================================================================
     # Calculate drawdownimport pandas as pd
 
@@ -136,7 +163,6 @@ if uploaded_file is not None:
 
 # ----------------------------------------------------------------------------------Daily Breakup----------------------------------------------------------------------------------
     # Group the data by year and day of the week and calculate the sum of profit for each combination
-    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
     daywise_breakup = data.groupby(['year', 'day_of_week'])['Pnl'].sum().unstack().reindex(day_order,axis=1)
 
 # --------------------------------------------------------------------------------Ratios--------------------------------------------------------------------------------
@@ -190,9 +216,10 @@ if uploaded_file is not None:
     average_points=overall_profit/(data['cumulative_pnl'].count())/data['Quantity'].iloc[5]
     roi_percentage=(overall_profit/capital)*100
     yearly_roi_percentage=(roi_percentage/number_of_years)
-    data['std']=data['Pnl']/capital
+    data['std']=pd.to_numeric(data['Pnl'])/capital
     std=data['std'].values.tolist()
-    stdev=sta.pstdev(std)
+    # stdev=sta.pstdev(std)
+    stdev = np.std(std)
     sharpe_ratio=(cagr-.02)/stdev
     Ratios={
         'Maximum Drawdown':round(max_drawdown,2),
@@ -222,7 +249,7 @@ if uploaded_file is not None:
         "Avg Weekly Profit": avg_weekly_profit,
     }
 # --------------------------------------------------------------------------------minimum_pnl--------------------------------------------------------------------------------
-
+    month_order = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December']
     data['monthly_pnl_unstyled'] = data.groupby(['year', 'month_name'])['Pnl'].cumsum()
     minimum_pnl = data.groupby(['year', 'month_name'])['monthly_pnl_unstyled'].min().unstack().fillna(0).reindex(month_order, axis=1)
 
@@ -238,6 +265,7 @@ if uploaded_file is not None:
 
     # Calculate the total PNL for each quarter and year
     quarterly_pnl = data.groupby(['year', 'quarter'])['Pnl'].sum().unstack().fillna(0)
+    quarterly_pnl['Net Pnl'] = quarterly_pnl.sum(axis=1)
     total_pnl = quarterly_pnl.sum(axis=1)
     quarterly_pnl_percent = (quarterly_pnl / capital) * 100
 
@@ -309,30 +337,6 @@ if uploaded_file is not None:
         xaxis_title='Month',
         yaxis_title='Number of Trades'
     )
-# =============================================================================STREAKS=========================================================================================
-    # Calculate the streaks
-    data['is_win'] = data['Pnl'] > 0
-    data['is_loss'] = data['Pnl'] < 0
-
-    # Calculate the streak ID for winning and losing streaks
-    data['win_streak_id'] = (data['is_win'] != data['is_win'].shift()).cumsum()
-    data['loss_streak_id'] = (data['is_loss'] != data['is_loss'].shift()).cumsum()
-
-    # Calculate the streak details for winning streaks
-    win_streaks = data[data['is_win']].groupby('win_streak_id').agg(
-            Days=('date', 'count'),
-            Start=('date', 'first'),
-            End=('date', 'last'),
-            Profit=('Pnl', 'sum')
-        ).nlargest(5, 'Profit').reset_index(drop=True)
-
-    # Calculate the streak details for losing streaks
-    loss_streaks = data[data['is_loss']].groupby('loss_streak_id').agg(
-        Days=('date', 'count'),
-        Start=('date', 'first'),
-        End=('date', 'last'),
-        Loss=('Pnl', 'sum')
-        ).nsmallest(5, 'Loss').reset_index(drop=True)
 
 # =========================================================DATA TABLE=====================================================================================================================================================
         # Apply color formatting to PNL values
@@ -346,7 +350,8 @@ if uploaded_file is not None:
 
     # Calculate the total PNL for each month and year
     monthly_pnl_unstyled = data.groupby(['year', 'month_name'])['Pnl'].sum().unstack()
-
+    monthly_pnl_unstyled['Net Pnl'] = monthly_pnl_unstyled.sum(axis=1)
+    month_order = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December','Net Pnl']
     monthly_pnl = monthly_pnl_unstyled.reindex(month_order, axis=1).applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).style.applymap(color_negative_red)
 
 
