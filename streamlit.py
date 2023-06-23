@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
+# import plotly.graph_objects as go
+# import plotly.express as px
 import numpy as np
 import statistics as sta
-import matplotlib.colors as mcolors
+# import matplotlib.colors as mcolors
 import base64
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as dt
 
