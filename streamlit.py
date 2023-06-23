@@ -18,30 +18,17 @@ st.set_page_config(
     page_icon="🗓️",
     layout="wide",
 )
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 
-# Authenticate and create a GoogleDrive instance
-gauth = GoogleAuth()
-drive = GoogleDrive(gauth)
+# Specify the Google Drive file URL
+url = 'https://drive.google.com/uc?id=1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-'
 
-# Extract the file ID from the Google Drive link
-link = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
-file_id = link.split('/')[-2]
-
-# Create a GoogleDriveFile instance with the file ID
-file = drive.CreateFile({'id': file_id})
-
-# Download the file and read its data
-file.GetContentFile('filename.extension')  # Replace 'filename.extension' with the desired filename and extension
-
-# Read the file data and encode it as base64
-with open('filename.extension', 'rb') as image_file:
-    image_data = image_file.read()
-    image_base64 = base64.b64encode(image_data).decode('utf-8')
-
-url = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
+# Make a request to the file URL
 response = requests.get(url)
+
+if response.status_code == 200:
+    # Read the file data and encode it as base64
+    image_data = response.content
+    image_base64 = base64.b64encode(image_data).decode('utf-8')
 st.image(image_data,width=500)
 x=0
 # Apply CSS styling to the tables
