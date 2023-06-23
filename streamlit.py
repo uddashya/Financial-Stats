@@ -304,7 +304,7 @@ if uploaded_file is not None:
     quarterly_PnL.rename(columns={1:'Q1',2:'Q2',3:'Q3',4:'Q4'},inplace=True)
     quarterly_PnL_percent.rename(columns={1:'Q1',2:'Q2',3:'Q3',4:'Q4'},inplace=True)
     
-    bar_fig_quarterly = go.Figure()
+    # bar_fig_quarterly = go.Figure()
     for col in quarterly_PnL.columns:
         # bar_fig_quarterly.add_trace(go.Bar(x=quarterly_PnL.index, y=quarterly_PnL[col], name=f"{col}"))
 
