@@ -75,7 +75,7 @@ if uploaded_file is not None:
         s=value
         value=''
         for i in s:
-            if i.isnumeric():
+            if i.isnumeric() or i=='-':
                 value+=i
         value=value.strip('%')
         if isinstance(value, str):
@@ -88,9 +88,9 @@ if uploaded_file is not None:
             return 'background-color: #77dd77'
         else:
             return ''
-    def format_int_with_commas(value):
-        value=value.strip('%')
+    def format_int_with_commas(value): 
         if isinstance(value, str):
+            value=value.strip('%')
             value=float(value)
             return f'{value:,}'
         else:
@@ -172,7 +172,7 @@ if uploaded_file is not None:
         else:
             if data['drawdown'][i] >= 0:
                 current_drawdown['End Date'] = data['ExitTime'][i-1]
-                if current_drawdown['Start Date'] != current_drawdown['End Date']:
+                if current_drawdown['Start Date'] != current_drawdown['End Date'] and current_drawdown['Drawdown']!=float('inf'):
                     drawdown_periods.append(current_drawdown)
                     current_drawdown = None
             else:
@@ -180,7 +180,7 @@ if uploaded_file is not None:
                     current_drawdown['Drawdown'] = data['drawdown'][i]
                     current_drawdown['Max Date'] = data['ExitTime'][i]
 
-    if current_drawdown is not None and current_drawdown['Start Date'] != current_drawdown['End Date']:
+    if current_drawdown is not None and current_drawdown['Start Date'] != current_drawdown['End Date'] and current_drawdown['Drawdown']!=float('inf'):
         current_drawdown['End Date'] = data['ExitTime'][len(data)-1]
         drawdown_periods.append(current_drawdown)
 
@@ -465,7 +465,7 @@ if uploaded_file is not None:
                 st.table(quarterly_PnL.applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).applymap(format_int_with_commas).style.applymap(color_negative_red))
                 st.subheader("Quarterly P&L Breakup (Percentages)")
                 st.markdown(table_style, unsafe_allow_html=True)
-                st.table(quarterly_PnL_percent.applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).applymap(lambda x: f'{x}%').applymap(format_int_with_commas).style.applymap(color_negative_red))
+                st.table(quarterly_PnL_percent.applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).applymap(format_int_with_commas).applymap(lambda x: f'{x}%').style.applymap(color_negative_red))
                 st.divider()
             with col2:
                 st.plotly_chart(area_fig)
@@ -478,7 +478,7 @@ if uploaded_file is not None:
             with col2:
                 st.plotly_chart(drawdown_graph)
             st.markdown(table_style, unsafe_allow_html=True)
-            st.table(drawdown_df.sort_values(by='Drawdown').reset_index(drop=True).applymap(format_int_with_commas).style.applymap(lambda x: 'color: #ff6961',subset=['Drawdown']))
+            st.table(drawdown_df.sort_values(by='Drawdown').reset_index(drop=True).applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).applymap(format_int_with_commas).style.applymap(lambda x: 'color: #ff6961',subset=['Drawdown']))
     with but_charts:
         if st.button('Charts'):
             x=3
