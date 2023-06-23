@@ -308,11 +308,11 @@ if uploaded_file is not None:
     # for col in quarterly_PnL.columns:
         # bar_fig_quarterly.add_trace(go.Bar(x=quarterly_PnL.index, y=quarterly_PnL[col], name=f"{col}"))
 
-    bar_fig_quarterly.update_layout(
-        title='Quarterly P&L',
-        xaxis_title='Year',
-        yaxis_title='P&L'
-    )
+    # bar_fig_quarterly.update_layout(
+    #     title='Quarterly P&L',
+    #     xaxis_title='Year',
+    #     yaxis_title='P&L'
+    # )
 
 #----------------------------------------------------------------------------------cumulative P&L----------------------------------------------------------------------------------
 
