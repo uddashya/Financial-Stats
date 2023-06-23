@@ -17,7 +17,7 @@ st.set_page_config(
     page_icon="🗓️",
     layout="wide",
 )
-image_path = '/Users/uddashyakumar/Desktop/Screenshot 2023-06-16 at 14.27.04.png'  # Replace with the path to your image file
+image_path = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
 with open(image_path, 'rb') as image_file:
     image_data = image_file.read()
     image_base64 = base64.b64encode(image_data).decode('utf-8')
