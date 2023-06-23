@@ -9,6 +9,7 @@ import base64
 # import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as dt
+import requests
 
 
 st.set_page_config(
@@ -17,15 +18,9 @@ st.set_page_config(
     page_icon="🗓️",
     layout="wide",
 )
-# image_path = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
-# with open(image_path, 'rb') as image_file:
-#     image_data = image_file.read()
-#     image_base64 = base64.b64encode(image_data).decode('utf-8')
-
-# image_data_uri = f'data:image/png;base64,{image_base64}'
-# caption = 'Backtest Engine'
-# width = 500  # Specify the desired width in pixels
-# st.image(image_data_uri,width=width)
+url = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
+response = requests.get(url)
+st.image(response,width=width)
 x=0
 # Apply CSS styling to the tables
 table_style = """
