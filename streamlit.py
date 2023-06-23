@@ -189,7 +189,7 @@ if uploaded_file is not None:
         drawdown_periods.append(current_drawdown)
 
     drawdown_df = pd.DataFrame(drawdown_periods)
-    drawdown_graph=px.bar(drawdown_df,y='Drawdown',title="Drawdown")
+    # drawdown_graph=px.bar(drawdown_df,y='Drawdown',title="Drawdown")
 #======================================================================================Stats======================================================================================
 
 # ----------------------------------------------------------------------------------Monthly Breakup----------------------------------------------------------------------------------
