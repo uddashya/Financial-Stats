@@ -20,7 +20,7 @@ st.set_page_config(
 )
 url = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
 response = requests.get(url)
-st.image(response,width=width)
+st.image(response.content,width=width)
 x=0
 # Apply CSS styling to the tables
 table_style = """
