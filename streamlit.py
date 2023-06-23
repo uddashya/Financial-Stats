@@ -321,11 +321,11 @@ if uploaded_file is not None:
     # area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
     # Set the layout for the area plot
-    area_fig.update_layout(
-        title='Cumulative P&L',
-        xaxis_title='Date',
-        yaxis_title='Cumulative P&L'
-    )
+    # area_fig.update_layout(
+    #     title='Cumulative P&L',
+    #     xaxis_title='Date',
+    #     yaxis_title='Cumulative P&L'
+    # )
 
 
 # ======================================================================================but_charts======================================================================================
@@ -335,22 +335,22 @@ if uploaded_file is not None:
     # area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
     # Set the layout for the area plot
-    area_fig.update_layout(
-        title='Cumulative P&L',
-        xaxis_title='Date',
-        yaxis_title='Cumulative P&L'
-    )
+    # area_fig.update_layout(
+    #     title='Cumulative P&L',
+    #     xaxis_title='Date',
+    #     yaxis_title='Cumulative P&L'
+    # )
 
     # Calculate the total P&L for each month
     monthly_PnL = data.groupby('month_year')['P&L'].sum().reset_index().astype(str)
 
     # Create a bar graph for monthly P&L using Plotly
     # bar_fig_monthly = go.Figure(data=go.Bar(x=monthly_PnL['month_year'], y=monthly_PnL['P&L']))
-    bar_fig_monthly.update_layout(
-        title='Monthly P&L',
-        xaxis_title='Month',
-        yaxis_title='P&L'
-    )
+    # bar_fig_monthly.update_layout(
+    #     title='Monthly P&L',
+    #     xaxis_title='Month',
+    #     yaxis_title='P&L'
+    # )
 
     # Calculate the cumulative P&L on a daily basis
     data['Daily P&L'] = data.groupby(data['ExitTime'].dt.date)['P&L'].cumsum()
@@ -367,11 +367,11 @@ if uploaded_file is not None:
 
     # Create a bar graph for monthly number of trades using Plotly
     # bar_fig_trades = go.Figure(data=go.Bar(x=monthly_trades['month_year'], y=monthly_trades['Number of Trades']))
-    bar_fig_trades.update_layout(
-        title='Monthly Number of Trades',
-        xaxis_title='Month',
-        yaxis_title='Number of Trades'
-    )
+    # bar_fig_trades.update_layout(
+    #     title='Monthly Number of Trades',
+    #     xaxis_title='Month',
+    #     yaxis_title='Number of Trades'
+    # )
     # ====================================================new graphs===============================================================================================
 
     dfpnl = pd.DataFrame(data['P&L_cumulative'].values, index=data['ExitTime'], columns=['Cumulative P&L'])
