@@ -419,7 +419,7 @@ if uploaded_file is not None:
                 st.bar_chart(df)
                 st.divider()
                 # st.plotly_chart(bar_fig_trades)
-                st.bar_chart(dfmonthlytrades,yaxis=dict(autorange="reversed"))
+                st.bar_chart(dfmonthlytrades)
         if x==4:
             col1, col2 = st.columns(2)
 
