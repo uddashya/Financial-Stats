@@ -107,8 +107,6 @@ if uploaded_file is not None:
     data['ExitPrice']=data['ExitPrice']*(1+(cost/100))
     data['P&L']=(data['EntryPrice']-data['ExitPrice'])*data['Quantity']*data['PositionStatus']*-1
 
-    with capital_col:
-        capital=st.number_input('Insert Capital')
     # st.table(data)
     #running basics
     formats = ["%d/%m/%Y", "%Y-%m-%d %H:%M:%S",'%m/%d/%Y %H:%M',"%d/%m/%Y","%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M",'%m/%d/%Y %H:%M']
@@ -238,9 +236,12 @@ if uploaded_file is not None:
     data["Month"] = data["ExitTime"].dt.month
     data['Date']=data['ExitTime'].dt.date
     max_drawdown=abs(data['drawdown'].min())
-    if capital==0:
-        max_entries_day = data["Date"].value_counts().max()
-        capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
+    max_entries_day = data["Date"].value_counts().max()
+    capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
+    with capital_col:
+        capital_=st.number_input('Insert Capital, Default capital is',capital)
+    if capital_!=0:
+        capital=capital_
     data['NAv']=data["cumulative_P&L"].add(capital)
     data['NAv'] = pd.to_numeric(data['NAv'], errors='coerce')
     ddpercentage=(max_drawdown/capital)
