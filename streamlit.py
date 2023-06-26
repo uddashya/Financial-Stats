@@ -239,7 +239,7 @@ if uploaded_file is not None:
     max_entries_day = data["Date"].value_counts().max()
     capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
     with capital_col:
-        capital_=st.number_input('Insert Capital, Default capital is',5)
+        capital_=st.number_input('Capital',capital)
     if capital_!=0:
         capital=capital_
     data['NAv']=data["cumulative_P&L"].add(capital)
