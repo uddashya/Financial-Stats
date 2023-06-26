@@ -259,8 +259,8 @@ if uploaded_file is not None:
         'Overall Drawdown Percentage':str(round(ddpercentage*100,2))+' %',
         'Overall Cagr':round(cagr*100,2),
         'Calmar (Yearly)':round(calmar,2),
-        'Overall Roi Percentage':str(round(roi_percentage,2))+' %',
-        'Yearly Roi Percentage':str(round(yearly_roi_percentage,2))+' %',
+        'Overall ROI Percentage':str(round(roi_percentage,2))+' %',
+        'Yearly ROI Percentage':str(round(yearly_roi_percentage,2))+' %',
         'Sharpe Ratio (Yearly)':round(sharpe_ratio,2)
     }
     statistics = {
