@@ -248,7 +248,7 @@ if uploaded_file is not None:
     number_of_years=data['year'].nunique()
     cagr=(data['NAv'].iloc[-1]/capital)**(1/number_of_years)-1
     calmar=(cagr*capital)/max_drawdown
-    average_points=overall_profit/(data['cumulative_P&L'].count())/data['Quantity'].iloc[5]
+    average_points=overall_profit/(data['cumulative_P&L'].count())/data['Quantity'].max()
     roi_percentage=(overall_profit/capital)*100
     yearly_roi_percentage=(roi_percentage/number_of_years)
     data['std']=pd.to_numeric(data['P&L'])/capital
