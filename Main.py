@@ -1,14 +1,15 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
+# import plotly.graph_objects as go
+# import plotly.express as px
 import numpy as np
 import statistics as sta
-import matplotlib.colors as mcolors
+# import matplotlib.colors as mcolors
 import base64
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as dt
+import requests
 
 
 st.set_page_config(
@@ -17,15 +18,18 @@ st.set_page_config(
     page_icon="🗓️",
     layout="wide",
 )
-image_path = '/Users/uddashyakumar/Desktop/Screenshot 2023-06-16 at 14.27.04.png'  # Replace with the path to your image file
-with open(image_path, 'rb') as image_file:
-    image_data = image_file.read()
-    image_base64 = base64.b64encode(image_data).decode('utf-8')
 
-image_data_uri = f'data:image/png;base64,{image_base64}'
-caption = 'Backtest Engine'
-width = 500  # Specify the desired width in pixels
-st.image(image_data_uri,width=width)
+# Specify the Google Drive file URL
+url = 'https://drive.google.com/uc?id=1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-'
+
+# Make a request to the file URL
+response = requests.get(url)
+
+if response.status_code == 200:
+    # Read the file data and encode it as base64
+    image_data = response.content
+    image_base64 = base64.b64encode(image_data).decode('utf-8')
+st.image(image_data,width=500)
 x=0
 # Apply CSS styling to the tables
 table_style = """
@@ -65,6 +69,10 @@ table_style += """
     }
     </style>
 """
+link = "https://drive.google.com/file/d/1GP6nAgm1P__IS0c2OyPyLt0HmVMZvwnb/view?usp=sharing"
+text = "Click here to visit the user guide"
+
+st.markdown(f"[{text}]({link})")
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -103,8 +111,6 @@ if uploaded_file is not None:
     data['ExitPrice']=data['ExitPrice']*(1+(cost/100))
     data['P&L']=(data['EntryPrice']-data['ExitPrice'])*data['Quantity']*data['PositionStatus']*-1
 
-    with capital_col:
-        capital=st.number_input('Insert Capital')
     # st.table(data)
     #running basics
     formats = ["%d/%m/%Y", "%Y-%m-%d %H:%M:%S",'%m/%d/%Y %H:%M',"%d/%m/%Y","%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M",'%m/%d/%Y %H:%M']
@@ -234,16 +240,19 @@ if uploaded_file is not None:
     data["Month"] = data["ExitTime"].dt.month
     data['Date']=data['ExitTime'].dt.date
     max_drawdown=abs(data['drawdown'].min())
-    if capital==0:
-        max_entries_day = data["Date"].value_counts().max()
-        capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
+    max_entries_day = data["Date"].value_counts().max()
+    capital=(150000*abs(max_entries_day)+max_drawdown)*1.2
+    with capital_col:
+        capital_=st.number_input('Capital, Pre-set Capital: '+str(int(capital)))
+    if capital_!=0:
+        capital=capital_
     data['NAv']=data["cumulative_P&L"].add(capital)
     data['NAv'] = pd.to_numeric(data['NAv'], errors='coerce')
     ddpercentage=(max_drawdown/capital)
     number_of_years=data['year'].nunique()
     cagr=(data['NAv'].iloc[-1]/capital)**(1/number_of_years)-1
     calmar=(cagr*capital)/max_drawdown
-    average_points=overall_profit/(data['cumulative_P&L'].count())/data['Quantity'].iloc[5]
+    average_points=overall_profit/(data['cumulative_P&L'].count())/data['Quantity'].max()
     roi_percentage=(overall_profit/capital)*100
     yearly_roi_percentage=(roi_percentage/number_of_years)
     data['std']=pd.to_numeric(data['P&L'])/capital
@@ -316,7 +325,7 @@ if uploaded_file is not None:
     # Create the area plot for cumulative P&L
     area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
-    # Set the layout for the area plot
+    Set the layout for the area plot
     area_fig.update_layout(
         title='Cumulative P&L',
         xaxis_title='Date',
@@ -327,10 +336,10 @@ if uploaded_file is not None:
 # ======================================================================================but_charts======================================================================================
 
     data['P&L_cumulative'] = data['P&L'].cumsum()
-    # Create the area plot for cumulative P&L
+    Create the area plot for cumulative P&L
     area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
-    # Set the layout for the area plot
+    Set the layout for the area plot
     area_fig.update_layout(
         title='Cumulative P&L',
         xaxis_title='Date',
@@ -340,7 +349,7 @@ if uploaded_file is not None:
     # Calculate the total P&L for each month
     monthly_PnL = data.groupby('month_year')['P&L'].sum().reset_index().astype(str)
 
-    # Create a bar graph for monthly P&L using Plotly
+    Create a bar graph for monthly P&L using Plotly
     bar_fig_monthly = go.Figure(data=go.Bar(x=monthly_PnL['month_year'], y=monthly_PnL['P&L']))
     bar_fig_monthly.update_layout(
         title='Monthly P&L',
@@ -352,7 +361,7 @@ if uploaded_file is not None:
     data['Daily P&L'] = data.groupby(data['ExitTime'].dt.date)['P&L'].cumsum()
     daily_fig = px.bar(data, x='Date', y='Daily P&L', title='Daily P&L Cumulative')
 
-    # Calculate the cumulative P&L on a weekly basis
+    Calculate the cumulative P&L on a weekly basis
     data['Week'] = data['ExitTime'].dt.to_period('W').astype(str)
     data['Weekly P&L'] = data.groupby('Week')['P&L'].cumsum()
     weekly_fig = px.bar(data, x='Week', y='Weekly P&L', title='Weekly P&L Cumulative')
@@ -361,7 +370,7 @@ if uploaded_file is not None:
     #monthly trades
     monthly_trades = data.groupby('month_year').size().reset_index(name='Number of Trades').astype(str)
 
-    # Create a bar graph for monthly number of trades using Plotly
+    Create a bar graph for monthly number of trades using Plotly
     bar_fig_trades = go.Figure(data=go.Bar(x=monthly_trades['month_year'], y=monthly_trades['Number of Trades']))
     bar_fig_trades.update_layout(
         title='Monthly Number of Trades',
@@ -384,6 +393,7 @@ if uploaded_file is not None:
     monthly_PnL_unstyled['Net P&L'] = monthly_PnL_unstyled.sum(axis=1)
     month_order = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December','Net P&L']
     monthly_PnL = monthly_PnL_unstyled.reindex(month_order, axis=1).fillna(0).applymap(lambda x: f'{x:.2f}' if isinstance(x, float) else x).applymap(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x).applymap(format_int_with_commas).style.applymap(color_negative_red)
+
 
 
 # ====================================================running the code===============================================================================================
@@ -473,6 +483,7 @@ if uploaded_file is not None:
             with col2:
                 st.header('Quarterly Bar Chart')
                 st.plotly_chart(bar_fig_quarterly)
+
         if x==5:
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
