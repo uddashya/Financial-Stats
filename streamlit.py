@@ -69,7 +69,7 @@ table_style += """
     }
     </style>
 """
-link = "https://www.example.com"
+link = "https://drive.google.com/file/d/1GP6nAgm1P__IS0c2OyPyLt0HmVMZvwnb/view?usp=sharing"
 text = "Click here to visit the user guide"
 
 st.markdown(f"[{text}]({link})")
