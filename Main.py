@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
-# import plotly.graph_objects as go
-# import plotly.express as px
+import plotly.graph_objects as go
+import plotly.express as px
 import numpy as np
 import statistics as sta
-# import matplotlib.colors as mcolors
+import matplotlib.colors as mcolors
 import base64
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime as dt
 import requests
@@ -22,7 +22,7 @@ st.set_page_config(
 # Specify the Google Drive file URL
 url = 'https://drive.google.com/uc?id=1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-'
 
-# Make a request to the file URL
+ Make a request to the file URL
 response = requests.get(url)
 
 if response.status_code == 200:
