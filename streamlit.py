@@ -69,6 +69,10 @@ table_style += """
     }
     </style>
 """
+link = "https://www.example.com"
+text = "Click here to visit the user guide"
+
+st.markdown(f"[{text}]({link})")
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
