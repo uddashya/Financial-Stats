@@ -22,7 +22,7 @@ st.set_page_config(
 # Specify the Google Drive file URL
 url = 'https://drive.google.com/uc?id=1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-'
 
- Make a request to the file URL
+#  Make a request to the file URL
 response = requests.get(url)
 
 if response.status_code == 200:
@@ -69,12 +69,11 @@ table_style += """
     }
     </style>
 """
-st.text('')
-link = "https://drive.google.com/file/d/1GP6nAgm1P__IS0c2OyPyLt0HmVMZvwnb/view?usp=sharing"
+link = "https://drive.google.com/file/d/1Ts8yaB_MQdYNzzWTwEgJ4Qfi0OKrGj5Q/view?usp=sharing"
 text = "Click here to visit the user guide"
 samplef='https://docs.google.com/spreadsheets/d/11V8m6LhMwjxNrL_9vadOtdBYk-TPnh4Oe2mJqnXmOfY/edit?usp=sharing'
 textf='Sample File'
-link1,link2=st.columns(1,5)
+link1,link2=st.columns([2,5])
 with link1:
     st.markdown(f"[{text}]({link})")
 with link2:
@@ -332,7 +331,7 @@ if uploaded_file is not None:
     # Create the area plot for cumulative P&L
     area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
-    Set the layout for the area plot
+    # Set the layout for the area plot
     area_fig.update_layout(
         title='Cumulative P&L',
         xaxis_title='Date',
@@ -343,10 +342,10 @@ if uploaded_file is not None:
 # ======================================================================================but_charts======================================================================================
 
     data['P&L_cumulative'] = data['P&L'].cumsum()
-    Create the area plot for cumulative P&L
+    # Create the area plot for cumulative P&L
     area_fig = go.Figure(data=go.Scatter(x=data['ExitTime'], y=data['P&L_cumulative'], fill='tozeroy'))
 
-    Set the layout for the area plot
+    # Set the layout for the area plot
     area_fig.update_layout(
         title='Cumulative P&L',
         xaxis_title='Date',
@@ -356,7 +355,7 @@ if uploaded_file is not None:
     # Calculate the total P&L for each month
     monthly_PnL = data.groupby('month_year')['P&L'].sum().reset_index().astype(str)
 
-    Create a bar graph for monthly P&L using Plotly
+    # Create a bar graph for monthly P&L using Plotly
     bar_fig_monthly = go.Figure(data=go.Bar(x=monthly_PnL['month_year'], y=monthly_PnL['P&L']))
     bar_fig_monthly.update_layout(
         title='Monthly P&L',
@@ -368,7 +367,7 @@ if uploaded_file is not None:
     data['Daily P&L'] = data.groupby(data['ExitTime'].dt.date)['P&L'].cumsum()
     daily_fig = px.bar(data, x='Date', y='Daily P&L', title='Daily P&L Cumulative')
 
-    Calculate the cumulative P&L on a weekly basis
+    # Calculate the cumulative P&L on a weekly basis
     data['Week'] = data['ExitTime'].dt.to_period('W').astype(str)
     data['Weekly P&L'] = data.groupby('Week')['P&L'].cumsum()
     weekly_fig = px.bar(data, x='Week', y='Weekly P&L', title='Weekly P&L Cumulative')
@@ -377,7 +376,7 @@ if uploaded_file is not None:
     #monthly trades
     monthly_trades = data.groupby('month_year').size().reset_index(name='Number of Trades').astype(str)
 
-    Create a bar graph for monthly number of trades using Plotly
+    # Create a bar graph for monthly number of trades using Plotly
     bar_fig_trades = go.Figure(data=go.Bar(x=monthly_trades['month_year'], y=monthly_trades['Number of Trades']))
     bar_fig_trades.update_layout(
         title='Monthly Number of Trades',
