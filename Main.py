@@ -69,10 +69,17 @@ table_style += """
     }
     </style>
 """
+st.text('')
 link = "https://drive.google.com/file/d/1GP6nAgm1P__IS0c2OyPyLt0HmVMZvwnb/view?usp=sharing"
 text = "Click here to visit the user guide"
+samplef='https://docs.google.com/spreadsheets/d/11V8m6LhMwjxNrL_9vadOtdBYk-TPnh4Oe2mJqnXmOfY/edit?usp=sharing'
+textf='Sample File'
+link1,link2=st.columns(1,5)
+with link1:
+    st.markdown(f"[{text}]({link})")
+with link2:
+    st.markdown(f"[{textf}]({samplef})")
 
-st.markdown(f"[{text}]({link})")
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
