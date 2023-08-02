@@ -11,7 +11,7 @@ import numpy as np
 from datetime import datetime as dt
 import requests
 
-
+# Configure default Streamlit theme
 st.set_page_config(
 
     page_title="Multyfi Backtester",
@@ -19,17 +19,48 @@ st.set_page_config(
     layout="wide",
 )
 
-# Specify the Google Drive file URL
-url = 'https://drive.google.com/uc?id=1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-'
+import requests
+import base64
+import re
+from PIL import Image
+import io
 
-#  Make a request to the file URL
-response = requests.get(url)
+url = 'https://drive.google.com/file/d/1-ABYp-BzXjjZTmkMGzjJz7jV1MHIfHH-/view?usp=sharing'
+
+# Extract the file ID from the URL
+file_id_match = re.match(r'^https://drive.google.com/file/d/([^/]+)/.*$', url)
+if file_id_match:
+    file_id = file_id_match.group(1)
+else:
+    raise ValueError('Invalid Google Drive file URL')
+
+# Construct the file download URL
+download_url = f'https://drive.google.com/uc?id={file_id}'
+
+# Make a request to the file download URL
+response = requests.get(download_url)
 
 if response.status_code == 200:
-    # Read the file data and encode it as base64
+    # Read the file data
     image_data = response.content
-    image_base64 = base64.b64encode(image_data).decode('utf-8')
-st.image(image_data,width=500)
+
+    # Open the image using PIL
+    pil_image = Image.open(io.BytesIO(image_data))
+
+    # Convert RGBA image to RGB
+    if pil_image.mode == 'RGBA':
+        pil_image = pil_image.convert('RGB')
+
+    # Convert the image to a base64-encoded string
+    buffered = io.BytesIO()
+    pil_image.save(buffered, format='JPEG')  # Change the format as per your image type
+    image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    # Display the image
+    st.image(pil_image, width=500)
+else:
+    print('Failed to download the file')
+
 x=0
 # Apply CSS styling to the tables
 table_style = """
@@ -113,19 +144,35 @@ if uploaded_file is not None:
     #setting the cost
     with cost_col:
         cost = st.number_input('Insert the Cost')
-    data['EntryPrice']=data['EntryPrice']*(1-(cost/100))
-    data['ExitPrice']=data['ExitPrice']*(1+(cost/100))
+    data['ExitPrice'] = pd.to_numeric(data['ExitPrice'], errors='coerce')
+    data['EntryPrice'] = pd.to_numeric(data['EntryPrice'], errors='coerce')
+
+    # Define a function to apply the calculations based on positionstatus
+    def calculate_prices(row):
+        if row['PositionStatus'] == -1:
+            row['EntryPrice'] = row['EntryPrice'] * (1 - (cost / 100))
+            row['ExitPrice'] = row['ExitPrice'] * (1 + (cost / 100))
+        elif row['PositionStatus'] == 1:
+            row['EntryPrice'] = row['EntryPrice'] * (1 + (cost / 100))
+            row['ExitPrice'] = row['ExitPrice'] * (1 - (cost / 100))
+        return row
+
+    # Apply the calculations to the DataFrame
+    data = data.apply(calculate_prices, axis=1)
+
     data['P&L']=(data['EntryPrice']-data['ExitPrice'])*data['Quantity']*data['PositionStatus']*-1
 
     # st.table(data)
     #running basics
-    formats = ["%d/%m/%Y", "%Y-%m-%d %H:%M:%S",'%m/%d/%Y %H:%M',"%d/%m/%Y","%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M",'%m/%d/%Y %H:%M']
+    formats = ["%d/%m/%Y", "%Y-%m-%d %H:%M:%S",'%m/%d/%Y %H:%M',"%m/%d/%Y","%d/%m/%Y","%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M",'%m/%d/%Y %H:%M',"%m/%d/%Y %H:%M:%S"]
     for fmt in formats:
         converted_dates = pd.to_datetime(data['ExitTime'], format=fmt, errors='coerce')
         if pd.isnull(converted_dates).any()==False:
             break
     # st.write(converted_dates)
     data['ExitTime'] = converted_dates
+    data=data.dropna()
+
     data['year'] = data['ExitTime'].dt.year
     # data['year']=pd.to_datetime(data['year'].astype(int).astype(str), format='%Y')
     data['year']=data['year'].apply(lambda x: f'{x:.2f}' if isinstance(x, float) else x).apply(lambda x: x.rstrip('0').rstrip('.') if isinstance(x, str) else x)
@@ -225,11 +272,11 @@ if uploaded_file is not None:
     win_percentage = (data[data['P&L'] > 0].shape[0] / data.shape[0]) * 100
 
     # Calculate the loss percentage (days)
-    loss_percentage = (data[data['P&L'] < 0].shape[0] / data.shape[0]) * 100
+    loss_percentage = (data[data['P&L'] <= 0].shape[0] / data.shape[0]) * 100
 
     # Calculate the average monthly profit
     data['month'] = pd.to_datetime(data['ExitTime']).dt.to_period('M')
-    average_monthly_profit = data.groupby('month')['P&L'].mean().mean()
+    average_monthly_profit = data.groupby('month')['P&L'].sum().mean()
 
     # Calculate the average profit on win days
     average_profit_win_days = data[data['P&L'] > 0]['P&L'].mean()
@@ -269,7 +316,7 @@ if uploaded_file is not None:
         'Maximum Drawdown':round(max_drawdown,2),
         'Overall Drawdown Percentage':str(round(ddpercentage*100,2))+' %',
         'Overall Cagr':round(cagr*100,2),
-        'Calmar (Yearly)':round(calmar,2),
+        'Calmar':round(calmar,2),
         'Overall ROI Percentage':str(round(roi_percentage,2))+' %',
         'Yearly ROI Percentage':str(round(yearly_roi_percentage,2))+' %',
         'Sharpe Ratio (Yearly)':round(sharpe_ratio,2)
