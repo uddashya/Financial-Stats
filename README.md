@@ -45,4 +45,5 @@ https://drive.google.com/file/d/1Ts8yaB_MQdYNzzWTwEgJ4Qfi0OKrGj5Q/view
 
 ## Contributing
 
-Contributions to Multyfi Backtester are welcome. Please ensure to update tests as appropriate.
+Contributions to Finstats are welcome. Please ensure to update tests as appropriate.
+
